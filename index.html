@@ -382,6 +382,10 @@
             <button class="btn btn-warning" onclick="downloadScript()">
                 💾 Tải Script (.js)
             </button>
+
+            <button class="btn btn-secondary" onclick="resetUsedNames(); updateStats();">
+                🔄 Reset Tên Đã Dùng
+            </button>
         </div>
         
         <!-- Hidden sliders - giữ giá trị mặc định -->
@@ -395,6 +399,12 @@
             <p><strong>Tên:</strong> <span id="infoName">-</span></p>
             <p><strong>Ngày sinh:</strong> <span id="infoDob">-</span></p>
             <p><strong>Email:</strong> <span id="infoEmail">-</span></p>
+        </div>
+
+        <div class="current-info" style="background: #e3f2fd; border: 1px solid #2196f3;">
+            <h4 style="color: #1565c0;">📊 Thống kê tên:</h4>
+            <p><strong>Đã dùng:</strong> <span id="statsUsed">0</span> / <span id="statsTotal">22,500</span></p>
+            <p><strong>Còn lại:</strong> <span id="statsRemaining">22,500</span> tên</p>
         </div>
     </div>
 
@@ -415,22 +425,91 @@
 
     <script>
         // UK Names Database
+        // Database tên UK mở rộng - 150 First Names
         const firstNames = [
+            // Nam phổ biến
             'Oliver', 'George', 'Harry', 'Noah', 'Jack', 'Leo', 'Arthur', 'Muhammad', 'Oscar', 'Charlie',
             'James', 'Henry', 'William', 'Lucas', 'Thomas', 'Freddie', 'Theo', 'Archie', 'Joshua', 'Alexander',
+            'Edward', 'Benjamin', 'Sebastian', 'Max', 'Ethan', 'Daniel', 'Jacob', 'Isaac', 'Samuel', 'Joseph',
+            'Adam', 'Ryan', 'Dylan', 'Luke', 'Nathan', 'Connor', 'Aaron', 'Jamie', 'Matthew', 'Andrew',
+            'David', 'Michael', 'Christopher', 'Robert', 'Richard', 'Peter', 'Paul', 'Stephen', 'Mark', 'Simon',
+            'Patrick', 'Callum', 'Liam', 'Aiden', 'Finn', 'Owen', 'Hugo', 'Felix', 'Louis', 'Jasper',
+            'Alfie', 'Albert', 'Stanley', 'Louie', 'Jude', 'Francis', 'Vincent', 'Edmund', 'Philip', 'Lawrence',
+            // Nữ phổ biến
             'Olivia', 'Amelia', 'Isla', 'Ava', 'Mia', 'Isabella', 'Sophia', 'Grace', 'Lily', 'Freya',
             'Emily', 'Ivy', 'Ella', 'Rosie', 'Florence', 'Willow', 'Poppy', 'Charlotte', 'Evie', 'Daisy',
-            'Edward', 'Benjamin', 'Sebastian', 'Max', 'Ethan', 'Daniel', 'Jacob', 'Isaac', 'Samuel', 'Joseph',
-            'Eleanor', 'Sophie', 'Alice', 'Jessica', 'Harper', 'Matilda', 'Ruby', 'Scarlett', 'Phoebe', 'Elsie'
+            'Eleanor', 'Sophie', 'Alice', 'Jessica', 'Harper', 'Matilda', 'Ruby', 'Scarlett', 'Phoebe', 'Elsie',
+            'Hannah', 'Emma', 'Lucy', 'Katie', 'Sarah', 'Rebecca', 'Lauren', 'Amy', 'Rachel', 'Nicole',
+            'Victoria', 'Elizabeth', 'Catherine', 'Margaret', 'Alexandra', 'Caroline', 'Beatrice', 'Penelope', 'Imogen', 'Harriet',
+            'Chloe', 'Zoe', 'Megan', 'Abigail', 'Natalie', 'Jasmine', 'Amber', 'Bethany', 'Molly', 'Anna',
+            'Clara', 'Iris', 'Ada', 'Violet', 'Hazel', 'Aurora', 'Luna', 'Stella', 'Esme', 'Thea',
+            'Arabella', 'Cordelia', 'Evangeline', 'Genevieve', 'Josephine', 'Adelaide', 'Clementine', 'Rosalind', 'Theodora', 'Winifred'
         ];
 
+        // Database họ UK mở rộng - 150 Last Names
         const lastNames = [
+            // Top 50 phổ biến nhất
             'Smith', 'Jones', 'Williams', 'Taylor', 'Brown', 'Davies', 'Evans', 'Wilson', 'Thomas', 'Roberts',
             'Johnson', 'Lewis', 'Walker', 'Robinson', 'Wood', 'Thompson', 'White', 'Watson', 'Jackson', 'Wright',
             'Green', 'Harris', 'Cooper', 'King', 'Lee', 'Martin', 'Clarke', 'James', 'Morgan', 'Hughes',
             'Edwards', 'Hill', 'Moore', 'Clark', 'Harrison', 'Scott', 'Young', 'Morris', 'Hall', 'Ward',
-            'Turner', 'Carter', 'Phillips', 'Mitchell', 'Patel', 'Adams', 'Campbell', 'Anderson', 'Allen', 'Cook'
+            'Turner', 'Carter', 'Phillips', 'Mitchell', 'Patel', 'Adams', 'Campbell', 'Anderson', 'Allen', 'Cook',
+            // Thêm 50 họ phổ biến
+            'Parker', 'Graham', 'Bell', 'Kelly', 'Simpson', 'Marshall', 'Price', 'Bennett', 'Murray', 'Gibson',
+            'Dixon', 'Hunt', 'Palmer', 'Berry', 'Barnes', 'Howard', 'Ross', 'Henderson', 'Coleman', 'Jenkins',
+            'Perry', 'Powell', 'Russell', 'Long', 'Patterson', 'Brooks', 'Sanders', 'Griffin', 'Hamilton', 'Spencer',
+            'Stone', 'Fox', 'Webb', 'Grant', 'Gordon', 'Ford', 'Wallace', 'Stewart', 'Reynolds', 'Kennedy',
+            'Mason', 'Shaw', 'Burns', 'Knight', 'Mills', 'Bailey', 'Richards', 'Chapman', 'Lawrence', 'Gardner',
+            // Thêm 50 họ đặc trưng UK
+            'Atkinson', 'Barker', 'Booth', 'Burke', 'Burton', 'Butler', 'Chambers', 'Collins', 'Crawford', 'Cunningham',
+            'Davidson', 'Douglas', 'Duncan', 'Ferguson', 'Fletcher', 'Fraser', 'Gallagher', 'Gilbert', 'Griffiths', 'Hawkins',
+            'Hayes', 'Holland', 'Hopkins', 'Hudson', 'Hutchinson', 'Johnston', 'Lambert', 'Lane', 'Lloyd', 'Mackenzie',
+            'Matthews', 'Maxwell', 'McDonald', 'Morrison', 'Murphy', 'Newman', 'Nicholson', 'Norton', 'Oliver', 'Owens',
+            'Pearson', 'Porter', 'Quinn', 'Reid', 'Richardson', 'Robertson', 'Shepherd', 'Stephens', 'Stevens', 'Walsh'
         ];
+
+        // Sử dụng localStorage để lưu tên đã dùng (tránh trùng lặp)
+        const STORAGE_KEY = 'usedStudentNames';
+        
+        function getUsedNames() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        function saveUsedName(fullName) {
+            const used = getUsedNames();
+            if (!used.includes(fullName)) {
+                used.push(fullName);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(used));
+            }
+        }
+        
+        function isNameUsed(fullName) {
+            return getUsedNames().includes(fullName);
+        }
+        
+        function resetUsedNames() {
+            localStorage.removeItem(STORAGE_KEY);
+            showToast('🔄 Đã reset danh sách tên đã dùng!', 'info');
+        }
+        
+        function getUsedCount() {
+            return getUsedNames().length;
+        }
+        
+        function getTotalCombinations() {
+            return firstNames.length * lastNames.length;
+        }
+        
+        function updateStats() {
+            const total = getTotalCombinations();
+            const used = getUsedCount();
+            const remaining = total - used;
+            
+            document.getElementById('statsUsed').textContent = used.toLocaleString();
+            document.getElementById('statsTotal').textContent = total.toLocaleString();
+            document.getElementById('statsRemaining').textContent = remaining.toLocaleString();
+        }
 
         let currentStudent = {
             firstName: '',
@@ -521,9 +600,46 @@
         }
 
         function generateRandom() {
-            const firstName = getRandomElement(firstNames);
-            const lastName = getRandomElement(lastNames);
-            const fullName = `${firstName} ${lastName}`;
+            const totalNames = getTotalCombinations();
+            const usedCount = getUsedCount();
+            
+            // Kiểm tra nếu đã dùng hết tên
+            if (usedCount >= totalNames) {
+                showToast(`⚠️ Đã dùng hết ${totalNames} tên! Click "Reset" để bắt đầu lại.`, 'info');
+                return;
+            }
+            
+            // Tìm tên chưa dùng (tối đa 100 lần thử)
+            let firstName, lastName, fullName;
+            let attempts = 0;
+            const maxAttempts = 100;
+            
+            do {
+                firstName = getRandomElement(firstNames);
+                lastName = getRandomElement(lastNames);
+                fullName = `${firstName} ${lastName}`;
+                attempts++;
+            } while (isNameUsed(fullName) && attempts < maxAttempts);
+            
+            // Nếu không tìm được sau 100 lần, tìm tuần tự
+            if (isNameUsed(fullName)) {
+                for (const fn of firstNames) {
+                    for (const ln of lastNames) {
+                        const name = `${fn} ${ln}`;
+                        if (!isNameUsed(name)) {
+                            firstName = fn;
+                            lastName = ln;
+                            fullName = name;
+                            break;
+                        }
+                    }
+                    if (!isNameUsed(fullName)) break;
+                }
+            }
+            
+            // Lưu tên đã dùng
+            saveUsedName(fullName);
+            
             const dobData = generateRandomDate();
             const email = generateEmail(firstName, lastName);
 
@@ -544,6 +660,9 @@
             document.getElementById('infoName').textContent = fullName;
             document.getElementById('infoDob').textContent = dobData.formatted;
             document.getElementById('infoEmail').textContent = email;
+            
+            // Cập nhật thống kê
+            updateStats();
 
             updatePosition();
         }
@@ -964,6 +1083,8 @@
         // Initialize on page load
         window.onload = function() {
             console.log('🚀 Đang tải...');
+            // Cập nhật thống kê
+            updateStats();
             // Tự động chọn LSE khi trang load
             selectSchool('lse');
         };
