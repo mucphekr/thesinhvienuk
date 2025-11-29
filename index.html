@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSE Letter Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="images.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .control-panel h2 {
+            font-family: 'Crimson Text', serif;
+            color: #cc0000;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #cc0000;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #cc0000, #ff4444);
+            outline: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #cc0000;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(204,0,0,0.4);
+            transition: transform 0.2s;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            min-width: 45px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            color: white;
+            box-shadow: 0 4px 15px rgba(204,0,0,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(204,0,0,0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #333, #555);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #117a8b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(23,162,184,0.3);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(23,162,184,0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fd7e14, #e06600);
+            color: white;
+            box-shadow: 0 4px 15px rgba(253,126,20,0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(253,126,20,0.4);
+        }
+
+        .school-section {
+            margin-bottom: 20px;
+        }
+
+        .btn-lse {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            color: white;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .btn-lse.active {
+            opacity: 1;
+            box-shadow: 0 4px 15px rgba(204,0,0,0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-cam {
+            background: linear-gradient(135deg, #8B4513, #654321);
+            color: white;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cam.active {
+            opacity: 1;
+            box-shadow: 0 4px 15px rgba(139,69,19,0.4);
+            transform: scale(1.02);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ddd, transparent);
+            margin: 20px 0;
+        }
+
+        .current-info, .fixed-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .current-info h4, .fixed-info h4 {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .current-info p, .fixed-info p {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .current-info strong, .fixed-info strong {
+            color: #222;
+        }
+
+        .fixed-info {
+            background: #e8f4e8;
+            border: 1px solid #4caf50;
+        }
+
+        .fixed-info h4 {
+            color: #2e7d32;
+        }
+
+        /* Letter Container */
+        .letter-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .letter {
+            position: relative;
+            width: 794px;
+            height: 1123px;
+            background: white;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        .letter img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay-text {
+            position: absolute;
+            font-family: 'Crimson Text', serif;
+            font-weight: 700;
+            color: #000;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        #studentName {
+            font-size: 16px;
+        }
+
+        #dateOfBirth {
+            font-size: 16px;
+        }
+
+        #dearName {
+            font-size: 16px;
+        }
+
+        .placeholder-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        .placeholder-text p:first-child {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #17a2b8, #117a8b);
+        }
+
+        /* Button group */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            body {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-panel {
+                width: 100%;
+                max-width: 500px;
+                position: static;
+            }
+            
+            .letter {
+                transform: scale(0.8);
+                transform-origin: top center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <h2>🎛️ Bảng Điều Khiển</h2>
+        
+        <div class="school-section">
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:10px;">🎓 Chọn Mẫu Thư</label>
+            <div class="btn-group">
+                <button class="btn btn-lse active" id="btnLSE" onclick="selectSchool('lse')">
+                    🔴 LSE
+                </button>
+                <button class="btn btn-cam" id="btnCam" onclick="selectSchool('cambridge')">
+                    🟤 Cambridge
+                </button>
+            </div>
+        </div>
+
+        <div id="mainControls" style="display:none">
+            <button class="btn btn-primary" onclick="generateRandom()">
+                🎲 Random Sinh Viên Mới
+            </button>
+
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="downloadImage()">
+                    📥 Tải Ảnh
+                </button>
+                <button class="btn btn-info" onclick="copyScript()">
+                    📋 Copy Script
+                </button>
+            </div>
+
+            <button class="btn btn-warning" onclick="downloadScript()">
+                💾 Tải Script (.js)
+            </button>
+        </div>
+        
+        <!-- Hidden sliders - giữ giá trị mặc định -->
+        <input type="hidden" id="nameY" value="240">
+        <input type="hidden" id="dobY" value="283">
+        <input type="hidden" id="dearY" value="369">
+
+        <div class="current-info">
+            <h4>📋 Thông tin hiện tại:</h4>
+            <p><strong>Trường:</strong> <span id="infoSchool">LSE</span></p>
+            <p><strong>Tên:</strong> <span id="infoName">-</span></p>
+            <p><strong>Ngày sinh:</strong> <span id="infoDob">-</span></p>
+            <p><strong>Email:</strong> <span id="infoEmail">-</span></p>
+        </div>
+    </div>
+
+    <div class="letter-container">
+        <div class="letter" id="letterElement">
+            <img id="letterImg" src="" alt="LSE Letter" style="display:none">
+            <div class="placeholder-text" id="placeholderText">
+                <p>📁</p>
+                <p>Chọn ảnh mẫu thư để bắt đầu</p>
+            </div>
+            <div class="overlay-text" id="studentName"></div>
+            <div class="overlay-text" id="dateOfBirth"></div>
+            <div class="overlay-text" id="dearName"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // UK Names Database
+        const firstNames = [
+            'Oliver', 'George', 'Harry', 'Noah', 'Jack', 'Leo', 'Arthur', 'Muhammad', 'Oscar', 'Charlie',
+            'James', 'Henry', 'William', 'Lucas', 'Thomas', 'Freddie', 'Theo', 'Archie', 'Joshua', 'Alexander',
+            'Olivia', 'Amelia', 'Isla', 'Ava', 'Mia', 'Isabella', 'Sophia', 'Grace', 'Lily', 'Freya',
+            'Emily', 'Ivy', 'Ella', 'Rosie', 'Florence', 'Willow', 'Poppy', 'Charlotte', 'Evie', 'Daisy',
+            'Edward', 'Benjamin', 'Sebastian', 'Max', 'Ethan', 'Daniel', 'Jacob', 'Isaac', 'Samuel', 'Joseph',
+            'Eleanor', 'Sophie', 'Alice', 'Jessica', 'Harper', 'Matilda', 'Ruby', 'Scarlett', 'Phoebe', 'Elsie'
+        ];
+
+        const lastNames = [
+            'Smith', 'Jones', 'Williams', 'Taylor', 'Brown', 'Davies', 'Evans', 'Wilson', 'Thomas', 'Roberts',
+            'Johnson', 'Lewis', 'Walker', 'Robinson', 'Wood', 'Thompson', 'White', 'Watson', 'Jackson', 'Wright',
+            'Green', 'Harris', 'Cooper', 'King', 'Lee', 'Martin', 'Clarke', 'James', 'Morgan', 'Hughes',
+            'Edwards', 'Hill', 'Moore', 'Clark', 'Harrison', 'Scott', 'Young', 'Morris', 'Hall', 'Ward',
+            'Turner', 'Carter', 'Phillips', 'Mitchell', 'Patel', 'Adams', 'Campbell', 'Anderson', 'Allen', 'Cook'
+        ];
+
+        let currentStudent = {
+            firstName: '',
+            lastName: '',
+            fullName: '',
+            dob: '',
+            dobParts: { day: 0, month: '', year: 0 },
+            email: ''
+        };
+
+        // Cấu hình các trường
+        const schoolConfig = {
+            lse: {
+                name: 'London School of Economics and Political Science',
+                shortName: 'LSE',
+                emailDomain: 'lse.ac.uk'
+            },
+            cambridge: {
+                name: 'University of Cambridge',
+                shortName: 'Cambridge',
+                emailDomain: 'cam.ac.uk'
+            }
+        };
+
+        let currentSchool = 'lse';
+
+        function selectSchool(school) {
+            currentSchool = school;
+            const config = schoolConfig[school];
+            
+            // Cập nhật UI buttons
+            document.getElementById('btnLSE').classList.toggle('active', school === 'lse');
+            document.getElementById('btnCam').classList.toggle('active', school === 'cambridge');
+            
+            // Load ảnh từ IMAGE_DATA
+            imageBase64 = IMAGE_DATA[school];
+            
+            // Hiển thị ảnh
+            const img = document.getElementById('letterImg');
+            img.src = imageBase64;
+            img.style.display = 'block';
+            
+            // Ẩn placeholder
+            document.getElementById('placeholderText').style.display = 'none';
+            
+            // Hiện controls
+            document.getElementById('mainControls').style.display = 'block';
+            
+            // Cập nhật hiển thị
+            document.getElementById('infoSchool').textContent = config.shortName;
+            
+            // Cập nhật email nếu đã có sinh viên, hoặc generate mới
+            if (currentStudent.firstName) {
+                currentStudent.email = generateEmail(currentStudent.firstName, currentStudent.lastName);
+                document.getElementById('infoEmail').textContent = currentStudent.email;
+            } else {
+                generateRandom();
+            }
+            
+            console.log('🎓 Đã chọn trường:', config.name);
+        }
+
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function generateRandomDate() {
+            const year = Math.floor(Math.random() * 9) + 1998;
+            const month = Math.floor(Math.random() * 12) + 1;
+            const day = Math.floor(Math.random() * 28) + 1;
+            
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            return {
+                formatted: `${months[month-1]} ${day}, ${year}`,
+                day: day,
+                month: months[month-1],
+                year: year
+            };
+        }
+
+        function generateEmail(firstName, lastName) {
+            const first = firstName.toLowerCase().replace(/[^a-z]/g, '');
+            const last = lastName.toLowerCase().replace(/[^a-z]/g, '');
+            const domain = schoolConfig[currentSchool].emailDomain;
+            return `${first}.${last}@${domain}`;
+        }
+
+        function generateRandom() {
+            const firstName = getRandomElement(firstNames);
+            const lastName = getRandomElement(lastNames);
+            const fullName = `${firstName} ${lastName}`;
+            const dobData = generateRandomDate();
+            const email = generateEmail(firstName, lastName);
+
+            currentStudent = {
+                firstName: firstName,
+                lastName: lastName,
+                fullName: fullName,
+                dob: dobData.formatted,
+                dobParts: { day: dobData.day, month: dobData.month, year: dobData.year },
+                email: email
+            };
+
+            document.getElementById('studentName').textContent = fullName;
+            document.getElementById('dateOfBirth').textContent = dobData.formatted;
+            document.getElementById('dearName').textContent = fullName;
+            
+            // Update info panel
+            document.getElementById('infoName').textContent = fullName;
+            document.getElementById('infoDob').textContent = dobData.formatted;
+            document.getElementById('infoEmail').textContent = email;
+
+            updatePosition();
+        }
+
+        // Fixed values - lề trái riêng cho từng mục
+        const FIXED_NAME_LEFT = 52;
+        const FIXED_DOB_LEFT = 193;
+        const FIXED_DEAR_LEFT = 121;
+        const FIXED_FONT_SIZE = 26;
+
+        function updatePosition() {
+            const nameY = document.getElementById('nameY').value;
+            const dobY = document.getElementById('dobY').value;
+            const dearY = document.getElementById('dearY').value;
+
+            const studentNameEl = document.getElementById('studentName');
+            const dateOfBirthEl = document.getElementById('dateOfBirth');
+            const dearNameEl = document.getElementById('dearName');
+
+            studentNameEl.style.left = FIXED_NAME_LEFT + 'px';
+            studentNameEl.style.top = nameY + 'px';
+            studentNameEl.style.fontSize = FIXED_FONT_SIZE + 'px';
+
+            dateOfBirthEl.style.left = FIXED_DOB_LEFT + 'px';
+            dateOfBirthEl.style.top = dobY + 'px';
+            dateOfBirthEl.style.fontSize = FIXED_FONT_SIZE + 'px';
+
+            dearNameEl.style.left = FIXED_DEAR_LEFT + 'px';
+            dearNameEl.style.top = dearY + 'px';
+            dearNameEl.style.fontSize = FIXED_FONT_SIZE + 'px';
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Biến lưu ảnh đã convert sang base64
+        let imageBase64 = null;
+        
+        // Download image
+        async function downloadImage() {
+            if (!imageBase64) {
+                showToast('❌ Vui lòng chọn ảnh mẫu thư trước!', 'error');
+                return;
+            }
+            
+            const schoolShort = schoolConfig[currentSchool].shortName;
+            const fileName = `${schoolShort}_${currentStudent.firstName}_${currentStudent.lastName}.png`;
+            showToast('⏳ Đang tạo ảnh...', 'info');
+            
+            try {
+                // Tạo canvas
+                const canvas = document.createElement('canvas');
+                const scale = 2;
+                canvas.width = 794 * scale;
+                canvas.height = 1123 * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+                
+                // Vẽ background trắng
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, 794, 1123);
+                
+                // Vẽ ảnh nền từ base64
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, 794, 1123);
+                        resolve();
+                    };
+                    img.onerror = resolve;
+                    img.src = imageBase64;
+                });
+                
+                // Vẽ text overlay
+                ctx.fillStyle = '#000000';
+                ctx.font = `bold ${FIXED_FONT_SIZE}px "Crimson Text", serif`;
+                
+                const nameY = parseInt(document.getElementById('nameY').value);
+                ctx.fillText(currentStudent.fullName, FIXED_NAME_LEFT, nameY + FIXED_FONT_SIZE);
+                
+                const dobY = parseInt(document.getElementById('dobY').value);
+                ctx.fillText(currentStudent.dob, FIXED_DOB_LEFT, dobY + FIXED_FONT_SIZE);
+                
+                const dearY = parseInt(document.getElementById('dearY').value);
+                ctx.fillText(currentStudent.fullName, FIXED_DEAR_LEFT, dearY + FIXED_FONT_SIZE);
+                
+                // Download
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                
+                showToast(`✅ Đã tải ảnh: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ Lỗi: ' + error.message, 'error');
+            }
+        }
+
+        // Generate autofill script
+        function generateAutofillScript() {
+            const s = currentStudent;
+            const school = schoolConfig[currentSchool];
+            return `(async () => {
+    // ============ CONFIG - THÔNG TIN SINH VIÊN ============
+    // Trường: ${school.shortName} - ${school.name}
+    const CONFIG = {
+        country: "United Kingdom",
+        schoolName: "${school.name}",
+        firstName: "${s.firstName}",
+        lastName: "${s.lastName}",
+        birthDay: "${s.dobParts.day}",
+        birthMonth: "${s.dobParts.month}",
+        birthYear: "${s.dobParts.year}",
+        email: "${s.email}",
+        selectors: {
+            country: [
+                'input[name*="country" i]',
+                'input[placeholder*="country" i]',
+                'input[aria-label*="Country" i]',
+                '#sid-country',
+                '[id*="country" i]'
+            ],
+            school: '#sid-college-name',
+            schoolMenu: '#sid-college-name-menu [role="option"]',
+            firstName: '#sid-first-name',
+            lastName: '#sid-last-name',
+            birthDayField: '#sid-birthdate-day',
+            birthMonthField: '#sid-birthdate__month',
+            birthMonthMenu: '#sid-birthdate__month-menu [role="option"]',
+            birthYearField: '#sid-birthdate-year',
+            email: '#sid-email'
+        },
+        delays: { default: 500, dropdownWait: 4000, schoolWait: 3500, monthWait: 800, fieldWait: 600 }
+    };
+    // ============ END CONFIG ============
+    
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+    
+    const set = async (sel, val) => {
+        const el = document.querySelector(sel);
+        if (!el) { console.log(\`⚠️ Không tìm thấy: \${sel}\`); return; }
+        el.focus();
+        await delay(200);
+        const setVal = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+        setVal.call(el, val);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        await delay(150);
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        await delay(150);
+        el.dispatchEvent(new Event("blur", { bubbles: true }));
+        await delay(CONFIG.delays.fieldWait);
+        console.log(\`✅ Đã điền: \${sel} = \${val}\`);
+    };
+    
+    const fillCountry = async () => {
+        let countryEl = null;
+        for (const sel of CONFIG.selectors.country) {
+            countryEl = document.querySelector(sel);
+            if (countryEl) break;
+        }
+        if (!countryEl) { console.log("⚠️ Không tìm thấy trường Quốc gia"); return; }
+        
+        countryEl.focus();
+        await delay(300);
+        countryEl.click();
+        await delay(300);
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(countryEl, CONFIG.country);
+        countryEl.dispatchEvent(new Event("input", { bubbles: true }));
+        await delay(200);
+        countryEl.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log("⏳ Đang chờ dropdown quốc gia...");
+        await delay(CONFIG.delays.dropdownWait);
+        
+        const dropdownSelectors = [
+            '[role="listbox"] [role="option"]',
+            '.MuiAutocomplete-listbox [role="option"]',
+            'ul[role="listbox"] li',
+            '[data-option-index]'
+        ];
+        
+        let ukOption = null;
+        for (const sel of dropdownSelectors) {
+            const options = document.querySelectorAll(sel);
+            for (const opt of options) {
+                const text = opt.innerText?.toLowerCase() || '';
+                if (text.includes('united kingdom')) { ukOption = opt; break; }
+            }
+            if (ukOption) break;
+        }
+        
+        if (ukOption) { 
+            ukOption.click(); 
+            await delay(600);
+            console.log("✅ Đã chọn United Kingdom"); 
+        } else {
+            console.log("⚠️ Không tìm thấy UK, thử chọn option đầu tiên...");
+            for (const sel of dropdownSelectors) {
+                const options = document.querySelectorAll(sel);
+                if (options.length > 0) { options[0].click(); break; }
+            }
+        }
+        await delay(500);
+    };
+    
+    const pasteSchool = async (val) => {
+        const el = document.querySelector(CONFIG.selectors.school);
+        if (!el) { console.log("⚠️ Không tìm thấy trường học"); return; }
+        el.focus();
+        await delay(300);
+        el.click();
+        await delay(300);
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, val);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        await delay(500);
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log("⏳ Đang chờ dropdown trường học...");
+        await delay(CONFIG.delays.schoolWait);
+        
+        const menuOption = document.querySelector(CONFIG.selectors.schoolMenu);
+        if (menuOption) { 
+            menuOption.click(); 
+            await delay(800);
+            console.log("✅ Đã chọn trường: " + CONFIG.schoolName); 
+        } else {
+            console.log("⚠️ Không tìm thấy option trường học, thử lại...");
+            await delay(1500);
+            const retry = document.querySelector(CONFIG.selectors.schoolMenu);
+            if (retry) { retry.click(); console.log("✅ Đã chọn trường (retry)"); }
+        }
+        await delay(600);
+    };
+    
+    const selectMonth = async () => {
+        const el = document.querySelector(CONFIG.selectors.birthMonthField);
+        if (!el) { console.log("⚠️ Không tìm thấy tháng sinh"); return; }
+        el.focus();
+        await delay(300);
+        el.click();
+        await delay(CONFIG.delays.monthWait);
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+        await delay(CONFIG.delays.monthWait);
+        
+        const monthOptions = [...document.querySelectorAll(CONFIG.selectors.birthMonthMenu)];
+        const targetMonth = monthOptions.find(o => o.innerText.toLowerCase().includes(CONFIG.birthMonth.toLowerCase()));
+        if (targetMonth) { 
+            targetMonth.click(); 
+            await delay(500);
+            console.log(\`✅ Đã chọn tháng: \${CONFIG.birthMonth}\`); 
+        } else {
+            console.log("⚠️ Không tìm thấy tháng, thử lại...");
+            await delay(1000);
+            const retry = [...document.querySelectorAll(CONFIG.selectors.birthMonthMenu)];
+            const retryMonth = retry.find(o => o.innerText.toLowerCase().includes(CONFIG.birthMonth.toLowerCase()));
+            if (retryMonth) { retryMonth.click(); console.log(\`✅ Đã chọn tháng: \${CONFIG.birthMonth} (retry)\`); }
+        }
+        await delay(400);
+    };
+    
+    console.log("🚀 Bắt đầu điền form tự động...");
+    console.log("📍 Bước 1: Điền quốc gia...");
+    await fillCountry();
+    await delay(800);
+    
+    console.log("📍 Bước 2: Chọn trường học...");
+    await pasteSchool(CONFIG.schoolName);
+    await delay(1000);
+    
+    console.log("📍 Bước 3: Điền họ tên...");
+    await set(CONFIG.selectors.firstName, CONFIG.firstName);
+    await delay(400);
+    await set(CONFIG.selectors.lastName, CONFIG.lastName);
+    await delay(600);
+    
+    console.log("📍 Bước 4: Điền ngày sinh...");
+    await selectMonth();
+    await delay(500);
+    await set(CONFIG.selectors.birthDayField, CONFIG.birthDay);
+    await delay(400);
+    await set(CONFIG.selectors.birthYearField, CONFIG.birthYear);
+    await delay(600);
+    
+    console.log("📍 Bước 5: Điền email...");
+    await set(CONFIG.selectors.email, CONFIG.email);
+    await delay(500);
+    
+    console.log("✅ Form đã được điền đầy đủ!");
+    console.log(\`📋 Họ tên: \${CONFIG.lastName} \${CONFIG.firstName}\`);
+    console.log(\`📅 Ngày sinh: \${CONFIG.birthDay}/\${CONFIG.birthMonth}/\${CONFIG.birthYear}\`);
+    console.log(\`📧 Email: \${CONFIG.email}\`);
+    
+    // Click verify button
+    console.log("📍 Bước 6: Tìm và click nút xác minh...");
+    await delay(1500);
+    
+    const clickVerifyButton = async () => {
+        const verifyTexts = [
+            'verify my student status',
+            'verify student status', 
+            'xác minh trạng thái sinh viên',
+            'xác minh trạng thái',
+            'verify status',
+            'verify',
+            'xác minh',
+            'submit',
+            'continue',
+            'tiếp tục'
+        ];
+        
+        const buttonSelectors = [
+            'button[type="submit"]',
+            'button.sid-btn',
+            'button[class*="submit"]',
+            'button[class*="verify"]',
+            'button[class*="primary"]',
+            '.sid-submit-wrapper button',
+            '[data-testid*="submit"]',
+            'form button',
+            'button',
+            '[role="button"]',
+            'input[type="submit"]'
+        ];
+        
+        let foundButton = null;
+        
+        for (const sel of buttonSelectors) {
+            const buttons = document.querySelectorAll(sel);
+            for (const btn of buttons) {
+                const text = (btn.innerText || btn.textContent || btn.value || '').toLowerCase().trim();
+                const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+                
+                for (const verifyText of verifyTexts) {
+                    if (text.includes(verifyText) || ariaLabel.includes(verifyText)) {
+                        foundButton = btn;
+                        console.log('🔍 Tìm thấy nút: "' + (text || ariaLabel) + '"');
+                        break;
+                    }
+                }
+                if (foundButton) break;
+            }
+            if (foundButton) break;
+        }
+        
+        if (!foundButton) {
+            const form = document.querySelector('form');
+            if (form) {
+                const formButtons = form.querySelectorAll('button, input[type="submit"]');
+                if (formButtons.length > 0) {
+                    foundButton = formButtons[formButtons.length - 1];
+                    console.log("🔍 Sử dụng nút cuối cùng trong form");
+                }
+            }
+        }
+        
+        if (!foundButton) {
+            foundButton = document.querySelector('button[type="submit"], button.btn-primary');
+            if (foundButton) console.log("🔍 Sử dụng nút submit/primary");
+        }
+        
+        if (foundButton) {
+            foundButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await delay(500);
+            
+            if (foundButton.disabled || foundButton.getAttribute('aria-disabled') === 'true') {
+                console.log("⏳ Nút đang disabled, chờ 3 giây...");
+                await delay(3000);
+            }
+            
+            foundButton.focus();
+            await delay(300);
+            foundButton.click();
+            console.log("✅ Đã click nút xác minh!");
+            
+            await delay(500);
+            foundButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        } else {
+            console.log("⚠️ Không tìm thấy nút xác minh. Vui lòng click thủ công.");
+        }
+    };
+    
+    await clickVerifyButton();
+})();`;
+        }
+
+        // Copy script to clipboard
+        function copyScript() {
+            const script = generateAutofillScript();
+            navigator.clipboard.writeText(script).then(() => {
+                showToast('✅ Đã copy script vào clipboard!', 'info');
+            }).catch(err => {
+                console.error('Error:', err);
+                showToast('❌ Lỗi khi copy!', 'error');
+            });
+        }
+
+        // Download script as file
+        function downloadScript() {
+            const script = generateAutofillScript();
+            const blob = new Blob([script], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const fileName = `autofill_${currentStudent.firstName}_${currentStudent.lastName}.js`;
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast(`✅ Đã tải script: ${fileName}`, 'success');
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            console.log('🚀 Đang tải...');
+            // Tự động chọn LSE khi trang load
+            selectSchool('lse');
+        };
+    </script>
+</body>
+</html>
