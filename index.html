@@ -1117,12 +1117,45 @@
         // Copy script to clipboard
         function copyScript() {
             const script = generateAutofillScript();
-            navigator.clipboard.writeText(script).then(() => {
-                showToast('✅ Đã copy script vào clipboard!', 'info');
-            }).catch(err => {
-                console.error('Error:', err);
+            
+            // Phương pháp 1: Sử dụng Clipboard API (modern)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(script).then(() => {
+                    showToast('✅ Đã copy script vào clipboard!', 'info');
+                }).catch(err => {
+                    console.error('Clipboard API error:', err);
+                    fallbackCopy(script);
+                });
+            } else {
+                // Phương pháp 2: Fallback cho file:// protocol
+                fallbackCopy(script);
+            }
+        }
+        
+        // Fallback copy method
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('✅ Đã copy script vào clipboard!', 'info');
+                } else {
+                    showToast('❌ Không thể copy. Hãy thử tải file .js', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback copy error:', err);
                 showToast('❌ Lỗi khi copy!', 'error');
-            });
+            }
+            
+            document.body.removeChild(textarea);
         }
 
         // Download script as file
