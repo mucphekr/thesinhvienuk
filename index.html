@@ -786,7 +786,10 @@
         birthMonth: "${s.dobParts.month}",
         birthYear: "${s.dobParts.year}",
         email: "${s.email}",
+        targetLanguage: "English (UK)",
         selectors: {
+            languageInput: '#changeLanguageSelector-input',
+            languageMenu: '#changeLanguageSelector-menu [role="option"]',
             country: [
                 'input[name*="country" i]',
                 'input[placeholder*="country" i]',
@@ -804,11 +807,62 @@
             birthYearField: '#sid-birthdate-year',
             email: '#sid-email'
         },
-        delays: { default: 500, dropdownWait: 4000, schoolWait: 3500, monthWait: 800, fieldWait: 600 }
+        delays: { default: 500, dropdownWait: 4000, schoolWait: 3500, monthWait: 800, fieldWait: 600, languageWait: 2000 }
     };
     // ============ END CONFIG ============
     
     const delay = ms => new Promise(r => setTimeout(r, ms));
+    
+    // ============ CHUYỂN ĐỔI NGÔN NGỮ SANG ENGLISH (UK) ============
+    const changeLanguage = async () => {
+        console.log("🌐 Đang thay đổi ngôn ngữ sang English (UK)...");
+        const langInput = document.querySelector(CONFIG.selectors.languageInput);
+        
+        if (!langInput) {
+            console.log("⚠️ Không tìm thấy Language selector");
+            return false;
+        }
+        
+        // Kiểm tra nếu đã là English (UK) thì bỏ qua
+        if (langInput.value === CONFIG.targetLanguage) {
+            console.log("✅ Ngôn ngữ đã là English (UK)");
+            return true;
+        }
+        
+        // Click vào language selector để mở dropdown
+        langInput.focus();
+        await delay(200);
+        langInput.click();
+        await delay(500);
+        
+        // Tìm và click vào option English (UK)
+        const menuSels = [
+            CONFIG.selectors.languageMenu, 
+            '[role="option"]', 
+            '.MuiMenuItem-root', 
+            'li[role="option"]'
+        ];
+        
+        for (const sel of menuSels) {
+            const opts = [...document.querySelectorAll(sel)];
+            const target = opts.find(o => {
+                const text = o.innerText?.trim() || o.textContent?.trim() || '';
+                return text === CONFIG.targetLanguage || text.includes('English (UK)');
+            });
+            
+            if (target) {
+                await delay(200);
+                target.click();
+                console.log("✅ Đã chọn ngôn ngữ: " + CONFIG.targetLanguage);
+                console.log("⏳ Đang chờ trang cập nhật ngôn ngữ...");
+                await delay(CONFIG.delays.languageWait);
+                return true;
+            }
+        }
+        
+        console.log("⚠️ Không tìm thấy option English (UK) trong dropdown");
+        return false;
+    };
     
     const set = async (sel, val) => {
         const el = document.querySelector(sel);
@@ -931,6 +985,11 @@
     };
     
     console.log("🚀 Bắt đầu điền form tự động...");
+    
+    console.log("📍 Bước 0: Chuyển đổi ngôn ngữ sang English (UK)...");
+    await changeLanguage();
+    await delay(500);
+    
     console.log("📍 Bước 1: Điền quốc gia...");
     await fillCountry();
     await delay(800);
